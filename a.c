@@ -142,7 +142,7 @@ bool is_bst_util(struct Bst *node, long long int min_value, long long int max_va
     {
         return true;
     }
-    if (node->data > min_value && node->data < max_value && is_bst_util(node->left, min_value, node->data) && is_bst_util(node->right, node->data, max_value))
+    if (node->data >= min_value && node->data <= max_value && is_bst_util(node->left, min_value, node->data) && is_bst_util(node->right, node->data, max_value))
     {
         return true;
     }
@@ -238,9 +238,69 @@ void level_order(struct Bst *node)
         {
             queue_push(current->adr->right);
         }
-
         queue_pop();
     }
+    head = NULL;
+    tail = NULL;
+}
+
+//----------------------------------------------------------------------
+
+struct Bst *find_min(struct Bst *node)
+{
+    if (node->left == NULL)
+    {
+        return node;
+    }
+
+    else if (node->left != NULL)
+    {
+        return find_min(node->left);
+    }
+}
+
+struct Bst *Delete_node(struct Bst *node, long long int data)
+{
+    if (node == NULL)
+    {
+        return node;
+    }
+    else if (data < node->data)
+    {
+
+        node->left = Delete_node(node->left, data);
+    }
+    else if (data > node->data)
+    {
+        node->right = Delete_node(node->right, data);
+    }
+    else
+    {
+        if (node->left == NULL && node->right == NULL)
+        {
+            free(node);
+            node = NULL;
+        }
+        else if (node->left == NULL && node->right != NULL)
+        {
+            struct Bst *temp = node;
+            node = node->right;
+            free(temp);
+        }
+        else if (node->right == NULL && node->left != NULL)
+        {
+            struct Bst *temp = node;
+            node = node->left;
+            free(temp);
+        }
+        else
+        {
+            struct Bst *temp = find_min(node->right); /* find_max(node->left); */
+            node->data = temp->data;
+            node->right = Delete_node(node->right, temp->data); /*  node->left = Delete_node(node->left,temp->data); */
+        }
+    }
+    return node;
 }
 
 //----------------------------------------------------------------------
@@ -261,46 +321,14 @@ int main()
         printf("%lld ", data_arr[i]);
         insert_new_node(root, data_arr[i]);
     }
-    printf("\n");
 
-    preorder(root);
-    printf("\n");
-
+    printf("\nlevel order: ");
     level_order(root);
-    long long int height = find_height(root);
-    printf("\nheight = %lld", height);
-    while (1)
-    {
-        long long int search;
-        printf("\nenter data to search: ");
-        scanf("%lld", &search);
 
-        if (search_data(root, search) == true)
-        {
-            printf("found %lld", search);
-        }
-        else
-        {
-            printf("not found %lld", search);
-        }
+    long long int n;
+    printf("\nn= ");
+    scanf("%lld", &n);
+    Delete_node(root, n);
 
-        char end;
-        printf("\nDo you wish to end? Y / N: ");
-        scanf(" %c", &end);
-        switch (end)
-        {
-        case 'Y':
-            return 0;
-        case 'y':
-            return 0;
-        case 'N':
-            break;
-        case 'n':
-            break;
-        default:
-            printf("Invalid input");
-        }
-    }
-    free(root);
     return 0;
 }
